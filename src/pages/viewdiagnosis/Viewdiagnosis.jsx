@@ -2,13 +2,40 @@ import CssBaseline from '@mui/material/CssBaseline';
 import "./viewdiagnosis.css"
 import Navbar from "../../components/navbar/Navbar";
 import {Paper, TableBody, TableCell, TableContainer, TableHead, TableRow} from "@mui/material";
-import {Table, TabPanel} from "@mui/joy";
+import {Modal, Table, TabPanel} from "@mui/joy";
 import moment from "moment";
-import {useState} from "react";
+import React, { useEffect, useState } from 'react';
+import { makeStyles } from '@material-ui/core/styles';
+import {Button, Card, CardMedia} from '@material-ui/core';
+import fetchimage from "../../services/fetchimage";
+const useStyles = makeStyles((theme) => ({
+    media: {
+        height: 0,
+        paddingTop: '56.25%', // 16:9
+    },
+}));
 
 export default function Viewdiagnosis(){
+
     const [loading, setLoading] = useState(true);
     const [records, setRecords] = useState(true);
+    const classes = useStyles();
+    const [blobUrl, setBlobUrl] = useState(null);
+    useEffect(() => {
+        const fetchBlob = async () => {
+            const response = await fetch.fetchimage(aid); // Replace with your server URL
+            const blob = await response.blob();
+            const url = URL.createObjectURL(blob);
+            setBlobUrl(url);
+        };
+        fetchBlob();
+    }, []);
+    const handleOpen = () => {
+        setOpen(true);
+    };
+    const handleClose = () => {
+        setOpen(false);
+    };
     return(
       <div>
           <Navbar/>
@@ -28,13 +55,16 @@ export default function Viewdiagnosis(){
                                       >CREATE DATE</TableCell>
                                       <TableCell align="left"
                                           // sx={{ fontWeight: 'bold' }}
+                                      >VIEW IMAGE</TableCell>
+                                      <TableCell align="left"
+                                          // sx={{ fontWeight: 'bold' }}
                                       >ML DIAGNOSIS</TableCell>
                                       <TableCell align="center"
                                           // sx={{ fontWeight: 'bold' }}
                                       >DOCTOR DIAGNOSIS</TableCell>
                                       <TableCell align="left"
                                           // sx={{ fontWeight: 'bold' }}
-                                      >PATIENT COMMENTS</TableCell>
+                                      >DOCTOR COMMENTS</TableCell>
                                       <TableCell align="left"
                                           // sx={{ fontWeight: 'bold' }}
                                       >PATIENT COMMENTS</TableCell>
@@ -57,6 +87,20 @@ export default function Viewdiagnosis(){
                                           <TableCell component="th" scope="row">
                                               {moment("11-02-1021").format("MMMM D, YYYY")}
                                           </TableCell>
+                                          <TableCell component="th" scope="row">
+                                              {moment("11-02-1021").format("MMMM D, YYYY")}
+                                          </TableCell>
+                                          <TableCell align="left"><Button variant="contained" color="success" onClick = {() => {handleOpen()
+                                          }}>View Image
+                                              <Modal
+                                                  className={classes.modal}
+                                                  open={open}
+                                                  onClose={handleClose}
+                                              >
+                                                  <div className={classes.paper}>
+                                                      <CardMedia className={classes.media} image={blobUrl} />
+                                                  </div>
+                                              </Modal></Button></TableCell>
                                           {/*<TableCell align="center">{row.ml_diagnosis}</TableCell>*/}
                                           {/*<TableCell align="center">{row.doctor_diagnosis}</TableCell>*/}
                                           {/*<TableCell align="center">{row.p_comments}</TableCell>*/}
@@ -78,3 +122,30 @@ export default function Viewdiagnosis(){
     );
 };
 
+
+
+
+//     <Card onClick={handleOpen}>
+//         <CardMedia className={classes.media} image={blobUrl} />
+//     </Card>
+//
+// </div>
+// function BlobImage() {
+//
+//
+//     useEffect(() => {
+//         const fetchBlob = async () => {
+//             const response = await fetch('http://example.com/image.jpg'); // Replace with your server URL
+//             const blob = await response.blob();
+//             const url = URL.createObjectURL(blob);
+//             setBlobUrl(url);
+//         };
+//         fetchBlob();
+//     }, []);
+//
+//     return (
+//         <Card>
+//             <CardMedia className={classes.media} image={blobUrl} />
+//         </Card>
+//     );
+// }
