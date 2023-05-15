@@ -2,6 +2,8 @@ import React from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import { Container, Typography, Button } from '@material-ui/core';
 import Navbar from "../../components/navbar/Navbar";
+import {useLocation, useParams} from "react-router-dom";
+import MyContext from "../../components/MyContext/MyContext";
 
 const useStyles = makeStyles((theme) => ({
     container: {
@@ -19,12 +21,21 @@ const useStyles = makeStyles((theme) => ({
     },
 }));
 
-function Home() {
+const Home = (props) => {
     const classes = useStyles();
-
+    // const pid=props.pid;
+    const {pid}=useParams();
+    console.log("Here home",pid);
+    // const pid_struct = React.useContext(MyContext)
+    // const location= useLocation();
+    // const {pid} = location.state;
+    // console.log("Here inside home",{props.pid})
+    // const {pid}=state;
+    // console.log("Inside Home", pid_struct.pid)
     return (
         <div>
-            <Navbar/>
+            {/*<p>{props.pid}</p>*/}
+            <Navbar pid={pid}/>
             <Container className={classes.container}>
                 <Typography variant="h4" className={classes.title}>
                     Welcome to Derma System!
@@ -42,6 +53,6 @@ function Home() {
             </Container>
         </div>
     );
-}
+};
 
 export default Home;

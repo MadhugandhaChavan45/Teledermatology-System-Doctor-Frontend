@@ -7,7 +7,10 @@ import moment from "moment";
 import React, { useEffect, useState } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import {Button, Card, CardMedia} from '@material-ui/core';
-import fetchimage from "../../services/fetchimage";
+import fetchimage from "../../services/Fetchimage";
+import getpastdata from "../../services/Getpastdata";
+import async from "async";
+import {useLocation, useParams} from "react-router-dom";
 const useStyles = makeStyles((theme) => ({
     media: {
         height: 0,
@@ -16,31 +19,104 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 export default function Viewdiagnosis(){
-
+    const {pid}=useParams();
+    console.log("Here Newrequest",pid);
+    // const location= useLocation();
+    // const {pid} = location.state;
+    console.log("Here viewdiagnosis",pid)
     const [loading, setLoading] = useState(true);
-    const [records, setRecords] = useState(true);
+    const [records, setRecords] = useState(null);
+    const [token, setToken] = useState(null);
+    const [open, setOpen] = useState(null);
     const classes = useStyles();
     const [blobUrl, setBlobUrl] = useState(null);
+    const getCookie = (name) => {
+        const cookieString = document.cookie;
+        console.log(cookieString)
+        if (cookieString.length > 0) {
+            const cookieArray = cookieString.split(';');
+            for (let i = 0; i < cookieArray.length; i++) {
+                const cookie = cookieArray[i].trim();
+                console.log(cookie)
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    return decodeURIComponent(cookie.substring(name.length + 1));
+                }
+            }
+        }
+        return null;
+    }
     useEffect(() => {
-        const fetchBlob = async () => {
-            const response = await fetch.fetchimage(aid); // Replace with your server URL
-            const blob = await response.blob();
-            const url = URL.createObjectURL(blob);
-            setBlobUrl(url);
-        };
-        fetchBlob();
+        // check for the token in cookies when the component mounts
+        const tokenFromCookie = getCookie('_xsrf');
+        console.log("token here",token)
+        if (tokenFromCookie) {
+            setToken(tokenFromCookie);
+        }
     }, []);
-    const handleOpen = () => {
-        setOpen(true);
-    };
-    const handleClose = () => {
-        setOpen(false);
-    };
+    const viewimage= async()=>{
+            // const fetchBlob = async () => {
+            //     const response = await fetch.fetchimage(aid); // Replace with your server URL
+            //     const blob = await response.blob();
+            //     const url = URL.createObjectURL(blob);
+            //     setBlobUrl(url);
+            // };
+            // fetchBlob();
+        };
+        const handleOpen = () => {
+            setOpen(true);
+        };
+        const handleClose = () => {
+            setOpen(false);
+        };
+    // useEffect(() => {
+    //     const fetchBlob = async () => {
+    //         const response = await fetch.fetchimage(aid); // Replace with your server URL
+    //         const blob = await response.blob();
+    //         const url = URL.createObjectURL(blob);
+    //         setBlobUrl(url);
+    //     };
+    //     fetchBlob();
+    // }, []);
+    // const handleOpen = () => {
+    //     setOpen(true);
+    // };
+    // const handleClose = () => {
+    //     setOpen(false);
+    // };
+    useEffect(() => {
+        console.log("HI")
+        const fetchData = async () => {
+            // {console.log(props.pid)}
+            const data={
+                'pid':pid,
+                'aid':''
+            }
+
+            try {
+                console.log(data)
+                const response = await getpastdata.pastdata(data);
+                console.log(response);
+                let res=response.data;
+                console.log(res)
+                // for(let i=0;i<res.length;i++){
+                //     res[i]['auto_id']=i;
+                //     res['accordionOpen']=false;
+                // }
+                setRecords(res);
+                console.log(records)
+            } catch (error) {
+                console.log(error);
+            }
+            setLoading(false);
+        };
+        fetchData();
+    },[])
     return(
       <div>
-          <Navbar/>
+          {/*<div>Hello</div>*/}
+          <Navbar pid={pid}/>
           View
-          <TabPanel value={0} sx={{ p: 2 }}>
+          {/*{console.log(records)}*/}
               {!loading && records.length==0?<>No past diagnosis Present</>:<></>}
               {!loading && records.length!==0?
                   ( <TableContainer component={Paper}>
@@ -76,48 +152,51 @@ export default function Viewdiagnosis(){
                               <TableBody sx={{ backgroundColor:"white" }}>
                                   { !loading && records.map((row) => (
                                       <TableRow
-                                          key={row.aId}
+                                          key={row.aid}
                                           sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
                                       >
-                                          {/*<TableCell align="center">{row.aId}</TableCell>*/}
-                                          <TableCell align="center">{row.aId}</TableCell>
+                                          <TableCell component="th" scope="row">
+                                              {moment(row.createdate).format("MMMM D, YYYY")}
+                                          </TableCell>
+                                          <TableCell><button onClick={()=>viewimage()}>View Image</button></TableCell>
+                                          <TableCell align="center">{row.mldiagnosis}</TableCell>
+                                          <TableCell align="center">{row.docdiagnosis}</TableCell>
+                                          <TableCell align="center">{row.dcomments}</TableCell>
+                                          <TableCell align="center">{row.pcomments}</TableCell>
+                                          <TableCell align="center">{row.status}</TableCell>
                                           {/*<TableCell component="th" scope="row">*/}
-                                          {/*    {moment(row.create_date).format("MMMM D, YYYY")}*/}
+                                          {/*    {moment("11-02-1021").format("MMMM D, YYYY")}*/}
                                           {/*</TableCell>*/}
-                                          <TableCell component="th" scope="row">
-                                              {moment("11-02-1021").format("MMMM D, YYYY")}
-                                          </TableCell>
-                                          <TableCell component="th" scope="row">
-                                              {moment("11-02-1021").format("MMMM D, YYYY")}
-                                          </TableCell>
-                                          <TableCell align="left"><Button variant="contained" color="success" onClick = {() => {handleOpen()
-                                          }}>View Image
-                                              <Modal
-                                                  className={classes.modal}
-                                                  open={open}
-                                                  onClose={handleClose}
-                                              >
-                                                  <div className={classes.paper}>
-                                                      <CardMedia className={classes.media} image={blobUrl} />
-                                                  </div>
-                                              </Modal></Button></TableCell>
+                                          {/*<TableCell component="th" scope="row">*/}
+                                          {/*    {moment("11-02-1021").format("MMMM D, YYYY")}*/}
+                                          {/*</TableCell>*/}
+                                          {/*<TableCell align="left"><Button variant="contained" color="success" onClick = {() => {handleOpen()*/}
+                                          {/*}}>View Image*/}
+                                          {/*    <Modal*/}
+                                          {/*        className={classes.modal}*/}
+                                          {/*        open={open}*/}
+                                          {/*        onClose={handleClose}*/}
+                                          {/*    >*/}
+                                          {/*        <div className={classes.paper}>*/}
+                                          {/*            <CardMedia className={classes.media} image={blobUrl} />*/}
+                                          {/*        </div>*/}
+                                          {/*    </Modal></Button></TableCell>*/}
                                           {/*<TableCell align="center">{row.ml_diagnosis}</TableCell>*/}
                                           {/*<TableCell align="center">{row.doctor_diagnosis}</TableCell>*/}
                                           {/*<TableCell align="center">{row.p_comments}</TableCell>*/}
                                           {/*<TableCell align="center">{row.d_comments}</TableCell>*/}
                                           {/*<TableCell align="center">{row.status}</TableCell>*/}
-                                          <TableCell align="center">disease1</TableCell>
-                                          <TableCell align="center">disease2</TableCell>
-                                          <TableCell align="center">Nothing</TableCell>
-                                          <TableCell align="center">not much</TableCell>
-                                          <TableCell align="center">viewed</TableCell>
+                                          {/*<TableCell align="center">disease1</TableCell>*/}
+                                          {/*<TableCell align="center">disease2</TableCell>*/}
+                                          {/*<TableCell align="center">Nothing</TableCell>*/}
+                                          {/*<TableCell align="center">not much</TableCell>*/}
+                                          {/*<TableCell align="center">viewed</TableCell>*/}
                                       </TableRow>
                                   ))}
                               </TableBody>
                           </Table>
                       </TableContainer>
                   ):<></>}
-          </TabPanel>
       </div>
     );
 };
@@ -149,3 +228,121 @@ export default function Viewdiagnosis(){
 //         </Card>
 //     );
 // }
+// import React, {useEffect, useState} from 'react';
+// import { makeStyles } from '@material-ui/core/styles';
+// import { Drawer, List, ListItem, ListItemText } from '@material-ui/core';
+// import Navbar from "../../components/navbar/Navbar";
+// import Sidebar from "../../components/sidebar/Sidebar";
+// import getpastdata from "../../services/Getpastdata";
+
+// const drawerWidth = 240;
+//
+// const useStyles = makeStyles((theme) => ({
+//     root: {
+//         display: 'flex',
+//     },
+//     drawer: {
+//         width: drawerWidth,
+//         flexShrink: 0,
+//     },
+//     drawerPaper: {
+//         width: drawerWidth,
+//     },
+//     content: {
+//         flexGrow: 1,
+//         padding: theme.spacing(3),
+//     },
+// }));
+//
+// const Viewdiagnosis = () => {
+//     const [loading, setLoading] = useState(true);
+//     const [records, setRecords] = useState(null);
+//     // const cred={
+//     //     'pid':
+//     //     'aid':
+//     // }
+//     useEffect(() => {
+//         const fetchData = async () => {
+//             // {console.log(props.pid)}
+//             setLoading(true);
+//             try {
+//                 const response = await getpastdata.pastdata();
+//                 console.log(response);
+//                 let res=response.data;
+//                 console.log(res)
+//                 // for(let i=0;i<res.length;i++){
+//                 //     res[i]['auto_id']=i;
+//                 //     res['accordionOpen']=false;
+//                 // }
+//                 setRecords(res);
+//             } catch (error) {
+//                 console.log(error);
+//             }
+//             setLoading(false);
+//         };
+//         fetchData();
+//     },[])
+// //     const classes = useStyles();
+// //     const [selectedIndex, setSelectedIndex] = useState(null);
+// //     const handleListItemClick = (index) => {
+// //         setSelectedIndex(index);
+// //     };
+// //
+// //     const items = [
+// //         {
+// //             id: 1,
+// //             title: 'Item 1',
+// //             content: 'This is the content for Item 1.',
+// //         },
+// //         {
+// //             id: 2,
+// //             title: 'Item 2',
+// //             content: 'This is the content for Item 2.',
+// //         },
+// //         {
+// //             id: 3,
+// //             title: 'Item 3',
+// //             content: 'This is the content for Item 3.',
+// //         },
+// //     ];
+//
+//     return (
+//         <div>
+//         <Navbar/>
+//             <div><Sidebar/></div>
+//
+//         {/*<div className={classes.root}>*/}
+//         {/*    <Drawer*/}
+//         {/*        className={classes.drawer}*/}
+//         {/*        variant="permanent"*/}
+//         {/*        classes={{*/}
+//         {/*            paper: classes.drawerPaper,*/}
+//         {/*        }}*/}
+//         {/*    >*/}
+//         {/*        <List>*/}
+//         {/*            {items.map((item, index) => (*/}
+//         {/*                <ListItem*/}
+//         {/*                    button*/}
+//         {/*                    key={item.id}*/}
+//         {/*                    selected={selectedIndex === index}*/}
+//         {/*                    onClick={() => handleListItemClick(index)}*/}
+//         {/*                >*/}
+//         {/*                    <ListItemText primary={item.title} />*/}
+//         {/*                </ListItem>*/}
+//         {/*            ))}*/}
+//         {/*        </List>*/}
+//         {/*    </Drawer>*/}
+//         {/*    <main className={classes.content}>*/}
+//         {/*        {selectedIndex !== null && (*/}
+//         {/*            <div>*/}
+//         {/*                <h2>{items[selectedIndex].title}</h2>*/}
+//         {/*                <p>{items[selectedIndex].content}</p>*/}
+//         {/*            </div>*/}
+//         {/*        )}*/}
+//         {/*    </main>*/}
+//         {/*</div>*/}
+//         </div>
+//     )
+// };
+//
+// export default Viewdiagnosis;

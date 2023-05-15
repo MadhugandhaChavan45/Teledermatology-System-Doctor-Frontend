@@ -1,7 +1,8 @@
 import React from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import { AppBar, Toolbar, Typography, Button } from '@material-ui/core';
-import { useNavigate } from 'react-router-dom';
+import {useNavigate, useParams} from 'react-router-dom';
+import logout from "../../services/Logout";
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -15,43 +16,16 @@ const useStyles = makeStyles((theme) => ({
     },
 }));
 
-
-function Navbar() {
+function Navbar(props) {
     const classes = useStyles();
     const navigate = useNavigate();
+    // const pid=props.pid;
+    // console.log("Inside navbar",pid)
+    const {pid}=useParams();
+    console.log("Here Navbar",pid);
     const handleLogout=()=>{
-        // let token =localStorage.getItem(did);
-        // doctor_logout.logout(token)
-        //     .then((response) => {
-        //         if (response.status === 200) {
-        //             toast.success("Successfully logged out!!", {
-        //                 position: "bottom-right",
-        //                 autoClose: 1000,
-        //                 hideProgressBar: false,
-        //                 closeOnClick: true,
-        //                 pauseOnHover: true,
-        //                 draggable: true,
-        //                 progress: undefined,
-        //             })
-        //             // localStorage.removeItem(did);
-        //             // localStorage.removeItem(did+"-"+token);
-        //             navigate(`/`);
-        //         }
-        //
-        //     })
-        //     .catch((error) => {
-        //         toast.error("Error Logging out!!", {
-        //             position: "bottom-right",
-        //             autoClose: 1000,
-        //             hideProgressBar: false,
-        //             closeOnClick: true,
-        //             pauseOnHover: true,
-        //             draggable: true,
-        //             progress: undefined,
-        //         })
-        //
-        //     });
-        navigate(`/`);
+        logout.signout();
+        // navigate(`/`);
     };
     return (
         <div className={classes.root}>
@@ -60,9 +34,10 @@ function Navbar() {
                     <Typography variant="h6" className={classes.title}>
                         Teledermatology System
                     </Typography>
-                    <Button color="inherit" onClick={()=>navigate("/home")}>Home</Button>
-                    <Button color="inherit" onClick={()=>navigate("/newrequest")}>New request</Button>
-                    <Button color="inherit" onClick={()=>navigate("/viewdiagnosis")}>View Diagnosis</Button>
+                    {/*<Button color="inherit" onClick={()=>navigate("/home",{state:{pid:pid}})}>Home</Button>*/}
+                    <Button color="inherit" onClick={()=>navigate(`/home/${pid}`)}>Home</Button>
+                    <Button color="inherit" onClick={()=>navigate(`/newrequest/${pid}`)}>New request</Button>
+                    <Button color="inherit" onClick={()=>navigate(`/viewdiagnosis/${pid}`)}>View Diagnosis</Button>
                     <Button color="inherit" onClick={()=>handleLogout()}>Logout</Button>
                 </Toolbar>
             </AppBar>

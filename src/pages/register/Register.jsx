@@ -2,6 +2,10 @@ import React, {useEffect, useState} from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import { TextField, Button } from '@material-ui/core';
 import axios from "axios";
+import register from "../../services/Register";
+import {useNavigate} from "react-router-dom";
+import Home from "../home/Home";
+import Navbar from "../../components/navbar/Navbar";
 
 const useStyles = makeStyles((theme) => ({
     form: {
@@ -19,6 +23,7 @@ const useStyles = makeStyles((theme) => ({
     },
 }));
 export default function Register() {
+    const navigate=useNavigate();
     const classes = useStyles();
     const [fname, setFname] = useState('');
     const [lname, setLname] = useState('');
@@ -48,21 +53,24 @@ export default function Register() {
         }
     }, []);
     const handleSubmit = async (event) => {
-        event.preventDefault();
+        // event.preventDefault();
         console.log(`Email: ${email}\nPassword: ${password}`);
         const data={
             'pid':pid,
-            'aadhar':aadhar,
+            'aadhaar':aadhar,
             'fname':fname,
             'lname':lname,
-            'Email':email,
-            'Pass':password,
+            'email':email,
+            'pass':password,
             'role':''
         }
         console.log(data)
-        await axios.post('http://localhost:8092/patient_end/api/v1/auth/register', data)
+        // const res=await axios.post('http://localhost:8092/patient_end/api/v1/auth/register', data)
+        const res=await register.register_patient(data)
+        console.log(res)
+        console.log(pid)
+        navigate(`/home/`,{state:{prop:pid}})
     };
-
     return (
         <form className={classes.form} onSubmit={handleSubmit}>
             <TextField
@@ -99,7 +107,7 @@ export default function Register() {
             />
             <TextField
                 className={classes.textField}
-                label="Aadhar"
+                label="Aadhaar"
                 value={aadhar}
                 onChange={(event) => setAadhar(event.target.value)}
             />

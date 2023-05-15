@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import { Link } from 'react-router-dom';
+import {Link, useNavigate} from 'react-router-dom';
 import { makeStyles } from '@material-ui/core/styles';
 import { Avatar, Button, TextField, FormControlLabel, Checkbox, Grid, Box, Typography, Container } from '@material-ui/core';
 import LockOutlinedIcon from '@material-ui/icons/LockOutlined';
@@ -7,6 +7,9 @@ import signin from "../../services/Signin";
 import {toast} from "react-toastify";
 import axios from "axios";
 import app from "../../App";
+import MyContext from "../../components/MyContext/MyContext"
+import MyContextProvider from "../../components/MyContext/MyContextProvider";
+import Home from "../home/Home";
 
 const useStyles = makeStyles((theme) => ({
     paper: {
@@ -32,6 +35,9 @@ const Login = () => {
     const classes = useStyles();
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
+    const navigate=useNavigate();
+    const [pid_1, setPid]=useState('Random');
+    // const {pid, setPid} = React.useContext(MyContext)
     // const handleSubmit = (event) => {
     //     event.preventDefault();
     //     console.log(`Username: ${username}, Password: ${password}`);
@@ -78,20 +84,29 @@ const Login = () => {
     // }, []);
 
     // function to get a cookie by name
-    // const getCookie = (name) => {
-    //     const cookieString = document.cookie;
-    //     if (cookieString.length > 0) {
-    //         const cookieArray = cookieString.split(';');
-    //         for (let i = 0; i < cookieArray.length; i++) {
-    //             const cookie = cookieArray[i].trim();
-    //             if (cookie.substring(0, name.length + 1) === (name + '=')) {
-    //                 return decodeURIComponent(cookie.substring(name.length + 1));
-    //             }
-    //         }
-    //     }
-    //     return null;
-    // }
+    function getCookie(cname) {
+        let name = cname + "=";
+        let decodedCookie = decodeURIComponent(document.cookie);
+        let ca = decodedCookie.split(';');
+        for(let i = 0; i <ca.length; i++) {
+            let c = ca[i];
+            while (c.charAt(0) == ' ') {
+                c = c.substring(1);
+            }
+            if (c.indexOf(name) == 0) {
+                return c.substring(name.length, c.length);
+            }
+        }
+        return "";
+    }
+    const setCookie = (name, value, days) => {
+        const expires = new Date();
+        expires.setTime(expires.getTime() + (days * 24 * 60 * 60 * 1000));
+        document.cookie = name + '=' + encodeURIComponent(value) + ';expires=' + expires.toUTCString() + ';path=/';
+    }
 
+
+    const token = getCookie("token")
     // function to set a cookie
     // const setCookie = (name, value, days) => {
     //     const expires = new Date();
@@ -105,7 +120,8 @@ const Login = () => {
     // }
 
     // function to handle user login
-    const handleLogin = async (event) => {
+    const handleLogin = (event) => {
+
         try {
             event.preventDefault();
             console.log(`Username: ${username}, Password: ${password}`);
@@ -113,9 +129,30 @@ const Login = () => {
                 'email': username,
                 'pass': password
             }
+            // setToken(response.data.token);
             console.log(bodyParameters)
-            const response= signin.login(bodyParameters)
-            console.log(response)
+            signin.login(bodyParameters)
+                .then((response) => {
+                    if (response.status === 200) {
+                        console.log(response)
+                        console.log("From Response", response.data.pid)
+                        console.log(response.data.pid)
+                        setPid(response.data.pid)
+                        console.log("After Setting", {pid_1})
+                        toast.success("Logged in successfully")
+                        console.log("response here"+response)
+                        console.log("inside",response.data.pid)
+                        // navigate('/home/',{state:{pid:response.data.pid}})
+                        // navigate('/home')
+                        // nav(`/new-consent-request/${did}/${name}`)
+                        navigate(`/home/${response.data.pid}`)
+                        // <Link to=
+                        console.log("HI")
+                    }
+                });
+            // setCookie('token', response.getData(), 7);
+            // const pid=response.data.pid
+            // console.log(document.cookie)
             // setToken(response.data.token);
             // setCookie('token', response.data.token, 7);
         } catch (error) {
@@ -182,6 +219,9 @@ const Login = () => {
                         </Grid>
                 </form>
             </div>
+            {console.log("PID Before Passing to Context", pid_1)}
+            <MyContext.Provider value={{pid:pid_1}}>
+            </MyContext.Provider>
         </Container>
     );
 };

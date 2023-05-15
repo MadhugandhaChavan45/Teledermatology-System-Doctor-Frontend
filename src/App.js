@@ -13,9 +13,9 @@ function App()
             <div>
                 <Routes>
                     <Route exact path="/" element={<Signin/>}/>
-                    <Route exact path="/home" element={<Home/>}/>
-                    <Route exact path="/newrequest" element={<Newrequest/>}/>
-                    <Route exact path="/viewdiagnosis" element={<Viewdiagnosis/>}/>
+                    <Route exact path="/home/:pid" element={<Home/>}/>
+                    <Route exact path="/newrequest/:pid" element={<Newrequest/>}/>
+                    <Route exact path="/viewdiagnosis/:pid" element={<Viewdiagnosis/>}/>
                     <Route exact path="/register" element={<Register/>}/>
                 </Routes>
             </div>
