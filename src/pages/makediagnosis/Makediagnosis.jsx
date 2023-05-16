@@ -41,6 +41,7 @@ export default function Makediagnosis(){
     const [token, setToken] = useState(null);
     const [isOpen, setIsOpen] = useState(false);
     const classes = useStyles();
+    console.log("Here Makediagnosis",did);
     const [blobUrl, setBlobUrl] = useState(null);
     const [modalIsOpen, setModalIsOpen] = useState(false);
     // const openModal = () => {
