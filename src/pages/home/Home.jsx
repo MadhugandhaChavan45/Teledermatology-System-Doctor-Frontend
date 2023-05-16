@@ -26,12 +26,6 @@ const Home = (props) => {
     // const pid=props.pid;
     const {pid}=useParams();
     console.log("Here home",pid);
-    // const pid_struct = React.useContext(MyContext)
-    // const location= useLocation();
-    // const {pid} = location.state;
-    // console.log("Here inside home",{props.pid})
-    // const {pid}=state;
-    // console.log("Inside Home", pid_struct.pid)
     return (
         <div>
             {/*<p>{props.pid}</p>*/}

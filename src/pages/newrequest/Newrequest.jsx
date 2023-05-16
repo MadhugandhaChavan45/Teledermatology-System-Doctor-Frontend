@@ -31,7 +31,8 @@ export default function Newrequest(props){
     const [name, setName] = useState('');
     const [pcomments,setPcomments] = useState({});
     var today = moment();
-    // const [aid,setAid] = useState(null);
+    const [aid,setAid] = useState(null);
+    let dummy;
     const data={}
     const handleNameChange =(e)=>{
         setName(e.target.value);
@@ -44,10 +45,10 @@ export default function Newrequest(props){
         console.log(image)
     };
     const handleCreate = ()=>{
-        console.log("Inside handlecreate",pid)
+        console.log("Inside handlecreate",dummy)
         const data = {
             "pid":pid,
-            "aid":"",
+            "aid":dummy,
             "createdate":today,
             "mldiagnosis":"",
             "docdiagnosis":"",
@@ -55,9 +56,9 @@ export default function Newrequest(props){
             "dcomments":"",
             "status":"Pending"
         }
-        console.log("Inside handlecreate",data)
         createrequest.createnewrequest(data)
             .then((response) => {
+                console.log(response.data)
                 if (response.status === 200) {
                     toast.success("Successfully created request!!", {
                         position: "bottom-right",
@@ -100,7 +101,10 @@ export default function Newrequest(props){
             upload.uploadimage(formData)
                 .then((response) => {
                     if (response.status === 200) {
-                        console.log(response)
+                        console.log("Inside upload img",response.data.aid)
+                        dummy=response.data.aid
+                        setAid(dummy)
+                        console.log("after setting aid",dummy)
                         toast.success("File uploaded successfully")
                         console.log("response here"+response)
                     }

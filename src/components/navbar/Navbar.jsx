@@ -24,8 +24,8 @@ function Navbar(props) {
     const {pid}=useParams();
     console.log("Here Navbar",pid);
     const handleLogout=()=>{
-        logout.signout();
-        // navigate(`/`);
+        // logout.signout();
+        navigate(`/`);
     };
     return (
         <div className={classes.root}>

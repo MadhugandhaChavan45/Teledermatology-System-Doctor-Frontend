@@ -6,11 +6,16 @@ import {Modal, Table, TabPanel} from "@mui/joy";
 import moment from "moment";
 import React, { useEffect, useState } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
-import {Button, Card, CardMedia} from '@material-ui/core';
+import {Button, Card, CardMedia, Typography} from '@material-ui/core';
 import fetchimage from "../../services/Fetchimage";
 import getpastdata from "../../services/Getpastdata";
 import async from "async";
 import {useLocation, useParams} from "react-router-dom";
+import {toast} from "react-toastify";
+import fetch from "../../services/Fetchimage";
+import Box from '@mui/material/Box';
+import ModalImage from "react-modal-image";
+// import "react-image-lightbox/style.css";
 const useStyles = makeStyles((theme) => ({
     media: {
         height: 0,
@@ -19,70 +24,87 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 export default function Viewdiagnosis(){
+    const style = {
+        position: 'absolute',
+        top: '50%',
+        left: '50%',
+        transform: 'translate(-50%, -50%)',
+        width: '50%',
+        scrollY: true,
+        bgcolor: 'background.paper',
+        border: '2px solid #000',
+        // boxShadow: 24,
+        p: 4,
+    };
     const {pid}=useParams();
+    const [imageData, setImageData] = useState('');
     console.log("Here Newrequest",pid);
     // const location= useLocation();
     // const {pid} = location.state;
     console.log("Here viewdiagnosis",pid)
     const [loading, setLoading] = useState(true);
-    const [records, setRecords] = useState(null);
+    const [records, setRecords] = useState([]);
     const [token, setToken] = useState(null);
-    const [open, setOpen] = useState(null);
+    const [isOpen, setIsOpen] = useState(false);
     const classes = useStyles();
     const [blobUrl, setBlobUrl] = useState(null);
-    const getCookie = (name) => {
-        const cookieString = document.cookie;
-        console.log(cookieString)
-        if (cookieString.length > 0) {
-            const cookieArray = cookieString.split(';');
-            for (let i = 0; i < cookieArray.length; i++) {
-                const cookie = cookieArray[i].trim();
-                console.log(cookie)
-                if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                    return decodeURIComponent(cookie.substring(name.length + 1));
-                }
-            }
-        }
-        return null;
-    }
+    const [modalIsOpen, setModalIsOpen] = useState(false);
+    // const openModal = () => {
+    //     setModalIsOpen(true);
+    //     console.log(imageData)
+    // };
+    // const closeModal = () => {
+    //     setModalIsOpen(false);
+    // }
+
     useEffect(() => {
-        // check for the token in cookies when the component mounts
-        const tokenFromCookie = getCookie('_xsrf');
-        console.log("token here",token)
-        if (tokenFromCookie) {
-            setToken(tokenFromCookie);
+        if (modalIsOpen) {
+            viewimage();
         }
-    }, []);
-    const viewimage= async()=>{
-            // const fetchBlob = async () => {
-            //     const response = await fetch.fetchimage(aid); // Replace with your server URL
-            //     const blob = await response.blob();
-            //     const url = URL.createObjectURL(blob);
-            //     setBlobUrl(url);
-            // };
-            // fetchBlob();
-        };
-        const handleOpen = () => {
-            setOpen(true);
-        };
-        const handleClose = () => {
-            setOpen(false);
-        };
-    // useEffect(() => {
-    //     const fetchBlob = async () => {
-    //         const response = await fetch.fetchimage(aid); // Replace with your server URL
-    //         const blob = await response.blob();
-    //         const url = URL.createObjectURL(blob);
-    //         setBlobUrl(url);
-    //     };
-    //     fetchBlob();
-    // }, []);
-    // const handleOpen = () => {
-    //     setOpen(true);
-    // };
-    // const handleClose = () => {
-    //     setOpen(false);
-    // };
+    }, [modalIsOpen]);
+
+    const openModal = () => {
+        console.log("Inside openmodal")
+        setModalIsOpen(true);
+        console.log("openmodal value",modalIsOpen)
+    };
+
+    const closeModal = () => {
+        setModalIsOpen(false);
+        setImageData('');
+    };
+    const viewimage= async(aid)=>{
+        console.log("inside viewimage",aid)
+        // const data={
+        //     "aid":aid
+        // }
+        setIsOpen(true)
+        fetch.fetchimage(aid)
+            .then((response) => {
+                console.log("image fetched",response)
+                const blob = response.data;
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                    const base64data = reader.result;
+                    setImageData(base64data);
+                    console.log(imageData)
+                };
+                reader.readAsDataURL(blob);
+                console.log("Fetchimage response",response);
+                // openModal();
+                if (response.status === 200) {
+                    toast.success("Successfully created request!!", {
+                        position: "bottom-right",
+                        autoClose: 1000,
+                        hideProgressBar: false,
+                        closeOnClick: true,
+                        pauseOnHover: true,
+                        draggable: true,
+                        progress: undefined,
+                    })
+                }
+            })
+    }
     useEffect(() => {
         console.log("HI")
         const fetchData = async () => {
@@ -91,32 +113,43 @@ export default function Viewdiagnosis(){
                 'pid':pid,
                 'aid':''
             }
-
             try {
-                console.log(data)
-                const response = await getpastdata.pastdata(data);
-                console.log(response);
-                let res=response.data;
-                console.log(res)
-                // for(let i=0;i<res.length;i++){
-                //     res[i]['auto_id']=i;
-                //     res['accordionOpen']=false;
-                // }
-                setRecords(res);
-                console.log(records)
+                console.log(pid)
+                getpastdata.pastdata(pid)
+                    .then((response) => {
+                        console.log("response from getpast",response);
+                        setRecords(response.data);
+                        if (response.status === 200) {
+                            toast.success("Successfully created request!!", {
+                                position: "bottom-right",
+                                autoClose: 1000,
+                                hideProgressBar: false,
+                                closeOnClick: true,
+                                pauseOnHover: true,
+                                draggable: true,
+                                progress: undefined,
+                            })
+                        }
+                    })
+
             } catch (error) {
                 console.log(error);
             }
             setLoading(false);
         };
         fetchData();
-    },[])
+    },[]);
     return(
-      <div>
-          {/*<div>Hello</div>*/}
+      <>
           <Navbar pid={pid}/>
-          View
-          {/*{console.log(records)}*/}
+          {/*<div>*/}
+          {/*    {imageData ? (*/}
+          {/*        <img src={imageData} alt="Image" />*/}
+          {/*    ) : (*/}
+          {/*        <p>Loading image...</p>*/}
+          {/*    )}*/}
+          {/*</div>*/}
+          {console.log(records)}
               {!loading && records.length==0?<>No past diagnosis Present</>:<></>}
               {!loading && records.length!==0?
                   ( <TableContainer component={Paper}>
@@ -155,194 +188,95 @@ export default function Viewdiagnosis(){
                                           key={row.aid}
                                           sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
                                       >
+                                          <TableCell align="center">{row.aid}</TableCell>
                                           <TableCell component="th" scope="row">
                                               {moment(row.createdate).format("MMMM D, YYYY")}
                                           </TableCell>
-                                          <TableCell><button onClick={()=>viewimage()}>View Image</button></TableCell>
+                                          {/*<TableCell><button onClick={()=>viewimage(row.aid)} >View Image</button></TableCell>*/}
+                                          <TableCell><button onClick={()=>{viewimage(row.aid); openModal();}} >View Image</button></TableCell>
                                           <TableCell align="center">{row.mldiagnosis}</TableCell>
                                           <TableCell align="center">{row.docdiagnosis}</TableCell>
                                           <TableCell align="center">{row.dcomments}</TableCell>
                                           <TableCell align="center">{row.pcomments}</TableCell>
                                           <TableCell align="center">{row.status}</TableCell>
-                                          {/*<TableCell component="th" scope="row">*/}
-                                          {/*    {moment("11-02-1021").format("MMMM D, YYYY")}*/}
-                                          {/*</TableCell>*/}
-                                          {/*<TableCell component="th" scope="row">*/}
-                                          {/*    {moment("11-02-1021").format("MMMM D, YYYY")}*/}
-                                          {/*</TableCell>*/}
-                                          {/*<TableCell align="left"><Button variant="contained" color="success" onClick = {() => {handleOpen()*/}
-                                          {/*}}>View Image*/}
-                                          {/*    <Modal*/}
-                                          {/*        className={classes.modal}*/}
-                                          {/*        open={open}*/}
-                                          {/*        onClose={handleClose}*/}
-                                          {/*    >*/}
-                                          {/*        <div className={classes.paper}>*/}
-                                          {/*            <CardMedia className={classes.media} image={blobUrl} />*/}
-                                          {/*        </div>*/}
-                                          {/*    </Modal></Button></TableCell>*/}
-                                          {/*<TableCell align="center">{row.ml_diagnosis}</TableCell>*/}
-                                          {/*<TableCell align="center">{row.doctor_diagnosis}</TableCell>*/}
-                                          {/*<TableCell align="center">{row.p_comments}</TableCell>*/}
-                                          {/*<TableCell align="center">{row.d_comments}</TableCell>*/}
-                                          {/*<TableCell align="center">{row.status}</TableCell>*/}
-                                          {/*<TableCell align="center">disease1</TableCell>*/}
-                                          {/*<TableCell align="center">disease2</TableCell>*/}
-                                          {/*<TableCell align="center">Nothing</TableCell>*/}
-                                          {/*<TableCell align="center">not much</TableCell>*/}
-                                          {/*<TableCell align="center">viewed</TableCell>*/}
                                       </TableRow>
                                   ))}
                               </TableBody>
                           </Table>
                       </TableContainer>
                   ):<></>}
-      </div>
+          <div>
+              <br/>
+              <br/>
+                  {imageData ? (
+                      <img src={imageData} alt="Image" />
+                  ) : (
+                      <p>Loading image...</p>
+                  )}
+          </div>
+          {/*<div>*/}
+          {/*    {modalIsOpen ?(*/}
+          {/*        <Modal show={openModal} onHide={closeModal}>*/}
+          {/*            {console.log("Inside actual modal",imageData)}*/}
+          {/*            {imageData ? (*/}
+          {/*                <img src={imageData} alt="Image" />*/}
+          {/*            ) : (*/}
+          {/*                <p>Loading image...</p>*/}
+          {/*            )}*/}
+          {/*        </Modal>*/}
+          {/*    ):<></>}*/}
+          {/*</div>*/}
+
+          {/*{modalIsOpen ?(*/}
+          {/*    <Modal*/}
+          {/*        keepMounted*/}
+          {/*        aria-labelledby="keep-mounted-modal-title"*/}
+          {/*        open={modalIsOpen}*/}
+          {/*        // className={id}*/}
+          {/*        onClose={closeModal}*/}
+          {/*        contentLabel="Image Modal"*/}
+          {/*    >*/}
+          {/*        {console.log("Inside actual modal")}*/}
+          {/*        <Box sx={style}>*/}
+          {/*            {console.log("Inside Box")}*/}
+          {/*            /!*{imageData ? (*!/*/}
+          {/*            /!*    <img src={imageData} alt="Image" />*!/*/}
+          {/*            /!*) : (*!/*/}
+          {/*            /!*    <p>Loading image...</p>*!/*/}
+          {/*            /!*)}*!/*/}
+          {/*            <Typography  id="keep-mounted-modal-description" sx={{ mt: 2 ,whiteSpace:"pre"}}>*/}
+          {/*                <div>*/}
+          {/*                    <img src={imageData} alt="Image" />*/}
+          {/*                </div>*/}
+          {/*            </Typography>*/}
+          {/*            <button onClick={closeModal}>Close Modal</button>*/}
+          {/*        </Box>*/}
+          {/*    </Modal>):<></>}*/}
+      </>
     );
 };
 
 
-
-
-//     <Card onClick={handleOpen}>
-//         <CardMedia className={classes.media} image={blobUrl} />
-//     </Card>
-//
-// </div>
-// function BlobImage() {
-//
-//
-//     useEffect(() => {
-//         const fetchBlob = async () => {
-//             const response = await fetch('http://example.com/image.jpg'); // Replace with your server URL
-//             const blob = await response.blob();
-//             const url = URL.createObjectURL(blob);
-//             setBlobUrl(url);
-//         };
-//         fetchBlob();
-//     }, []);
-//
-//     return (
-//         <Card>
-//             <CardMedia className={classes.media} image={blobUrl} />
-//         </Card>
-//     );
-// }
-// import React, {useEffect, useState} from 'react';
-// import { makeStyles } from '@material-ui/core/styles';
-// import { Drawer, List, ListItem, ListItemText } from '@material-ui/core';
-// import Navbar from "../../components/navbar/Navbar";
-// import Sidebar from "../../components/sidebar/Sidebar";
-// import getpastdata from "../../services/Getpastdata";
-
-// const drawerWidth = 240;
-//
-// const useStyles = makeStyles((theme) => ({
-//     root: {
-//         display: 'flex',
-//     },
-//     drawer: {
-//         width: drawerWidth,
-//         flexShrink: 0,
-//     },
-//     drawerPaper: {
-//         width: drawerWidth,
-//     },
-//     content: {
-//         flexGrow: 1,
-//         padding: theme.spacing(3),
-//     },
-// }));
-//
-// const Viewdiagnosis = () => {
-//     const [loading, setLoading] = useState(true);
-//     const [records, setRecords] = useState(null);
-//     // const cred={
-//     //     'pid':
-//     //     'aid':
-//     // }
-//     useEffect(() => {
-//         const fetchData = async () => {
-//             // {console.log(props.pid)}
-//             setLoading(true);
-//             try {
-//                 const response = await getpastdata.pastdata();
-//                 console.log(response);
-//                 let res=response.data;
-//                 console.log(res)
-//                 // for(let i=0;i<res.length;i++){
-//                 //     res[i]['auto_id']=i;
-//                 //     res['accordionOpen']=false;
-//                 // }
-//                 setRecords(res);
-//             } catch (error) {
-//                 console.log(error);
+// const getCookie = (name) => {
+//     const cookieString = document.cookie;
+//     console.log(cookieString)
+//     if (cookieString.length > 0) {
+//         const cookieArray = cookieString.split(';');
+//         for (let i = 0; i < cookieArray.length; i++) {
+//             const cookie = cookieArray[i].trim();
+//             console.log(cookie)
+//             if (cookie.substring(0, name.length + 1) === (name + '=')) {
+//                 return decodeURIComponent(cookie.substring(name.length + 1));
 //             }
-//             setLoading(false);
-//         };
-//         fetchData();
-//     },[])
-// //     const classes = useStyles();
-// //     const [selectedIndex, setSelectedIndex] = useState(null);
-// //     const handleListItemClick = (index) => {
-// //         setSelectedIndex(index);
-// //     };
-// //
-// //     const items = [
-// //         {
-// //             id: 1,
-// //             title: 'Item 1',
-// //             content: 'This is the content for Item 1.',
-// //         },
-// //         {
-// //             id: 2,
-// //             title: 'Item 2',
-// //             content: 'This is the content for Item 2.',
-// //         },
-// //         {
-// //             id: 3,
-// //             title: 'Item 3',
-// //             content: 'This is the content for Item 3.',
-// //         },
-// //     ];
-//
-//     return (
-//         <div>
-//         <Navbar/>
-//             <div><Sidebar/></div>
-//
-//         {/*<div className={classes.root}>*/}
-//         {/*    <Drawer*/}
-//         {/*        className={classes.drawer}*/}
-//         {/*        variant="permanent"*/}
-//         {/*        classes={{*/}
-//         {/*            paper: classes.drawerPaper,*/}
-//         {/*        }}*/}
-//         {/*    >*/}
-//         {/*        <List>*/}
-//         {/*            {items.map((item, index) => (*/}
-//         {/*                <ListItem*/}
-//         {/*                    button*/}
-//         {/*                    key={item.id}*/}
-//         {/*                    selected={selectedIndex === index}*/}
-//         {/*                    onClick={() => handleListItemClick(index)}*/}
-//         {/*                >*/}
-//         {/*                    <ListItemText primary={item.title} />*/}
-//         {/*                </ListItem>*/}
-//         {/*            ))}*/}
-//         {/*        </List>*/}
-//         {/*    </Drawer>*/}
-//         {/*    <main className={classes.content}>*/}
-//         {/*        {selectedIndex !== null && (*/}
-//         {/*            <div>*/}
-//         {/*                <h2>{items[selectedIndex].title}</h2>*/}
-//         {/*                <p>{items[selectedIndex].content}</p>*/}
-//         {/*            </div>*/}
-//         {/*        )}*/}
-//         {/*    </main>*/}
-//         {/*</div>*/}
-//         </div>
-//     )
-// };
-//
-// export default Viewdiagnosis;
+//         }
+//     }
+//     return null;
+// }
+// useEffect(() => {
+//     // check for the token in cookies when the component mounts
+//     const tokenFromCookie = getCookie('_xsrf');
+//     console.log("token here",token)
+//     if (tokenFromCookie) {
+//         setToken(tokenFromCookie);
+//     }
+// }, []);

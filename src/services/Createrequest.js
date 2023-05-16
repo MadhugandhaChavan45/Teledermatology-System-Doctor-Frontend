@@ -6,7 +6,8 @@ class Createrequest {
         // const config = {
         //     headers: {Authorization: `Bearer ${token}`, 'Access-Control-Allow-Origin': '*'}
         // }
-        return axios.post("http://localhost:8092/patient_end/api/v1/patient/create-appointment", body);
+        let res= axios.post("http://localhost:8092/patient_end/api/v1/patient/create-appointment", body);
+        return res;
     }
 }
 const createrequest =new Createrequest()
